@@ -1,6 +1,7 @@
 # RugPullDetection
 
 
+### TODO
 - shared i un config.ini.
 - Utils.
 - Data (No se si es necasri).
@@ -9,6 +10,20 @@
 - Features: curves_lp, curves_transfer, contract_features, lock_features, transfer_features, pool_features, pool_events.
 - ML: XGBOOST i FT-Transformer
 - Notebooks: Labels, Missing analysis, Features_track, Interpretability.
+
+### Introduction
+
+
+### How to use it
+
+
+### Example
+
+
+### Results
+
+
+### Reference
 
 
 
