@@ -73,9 +73,9 @@ def init():
     TOKEN_TOLERANCE    = float(config.get("THRESHOLDS", "TOKEN_TOLERANCE"))
     # Define other globals not saved in config.ini
     WEEK               = 4*60*24*7
-    ABI                = open(ROOT_FOLDER + "ABIs/normal_token_abi.txt").read()
-    ABI_FACTORY        = open(ROOT_FOLDER + "ABIs/factory_abi.txt").read()
-    ABI_POOL           = open(ROOT_FOLDER + "ABIs/abi_pool.txt").read()
+    ABI                = open(ROOT_FOLDER + "/ABIs/normal_token_abi.txt").read()
+    ABI_FACTORY        = open(ROOT_FOLDER + "/ABIs/factory_abi.txt").read()
+    ABI_POOL           = open(ROOT_FOLDER + "/ABIs/abi_pool.txt").read()
     # Define global objects
     BLOCKSTUDY        =  13152303
     # POOLS = pd.read_csv(ROOT_FOLDER + "/Analysis/pools.csv")
