@@ -1,0 +1,3 @@
+scikit-learn
+web3
+beautifulsoup4
