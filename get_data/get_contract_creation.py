@@ -5,13 +5,23 @@ import requests
 
 
 def _obtain_tx_creation(addr):
+    """
+        Gets token tx creation hash via scrapping
+    Args:
+        addr: string corresponding to token address
+
+    Returns:
+        Either tx_creation hash or "Not found"
+    """
 
     tx_hash_creation = "Not found"
     MAX_TRIES = 20
 
     for i in range(MAX_TRIES):
         try:
-            headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36'}
+            headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/'
+                                     '537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36'}
+
             r = requests.get('https://etherscan.io/address/' + addr, headers=headers)
             soup = BeautifulSoup(r.content, 'html.parser')
             soup2 = soup.find_all('div', 'col-md-8')
@@ -30,23 +40,21 @@ def _obtain_tx_creation(addr):
 
     return "Not found"
 
-# Open csv with all tokens
+
+# Read csv with all tokens
 tokens = pd.read_csv("../data/tokens.csv")["token_address"].tolist()
 
 try:
     tx_creation_df = pd.read_csv("../data/tx_creation.csv")
     tokens_already_checked, tx_creation_list = tx_creation_df["token_address"].tolist(), tx_creation_df.values.tolist()
+
 except:
     tokens_already_checked, tx_creation_list = [], []
 
-step_size = 100
 for i, token in enumerate(tokens):
     if token not in tokens_already_checked:
-        if i % step_size == 0:
-            print(i)
-            pd.DataFrame(tx_creation_list, columns=["token_address", "tx_hash_creation"]).\
-                to_csv("../data/tx_creation.csv", index=False)
         creation_tx = _obtain_tx_creation(token)
         tx_creation_list.append([token, creation_tx])
 
-pd.DataFrame(tx_creation_list, columns=["token_address", "tx_hash_creation"]).to_csv("../data/tx_creation.csv", index=False)
+pd.DataFrame(tx_creation_list, columns=["token_address", "tx_hash_creation"]).\
+    to_csv("../data/tx_creation.csv", index=False)

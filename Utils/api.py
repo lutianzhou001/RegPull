@@ -7,6 +7,7 @@ sys.path.append("../")
 import shared
 shared.init()
 
+
 def get_rpc_response(method, list_params=[]):
     url = shared.INFURA_URL
     list_params = list_params or []
@@ -14,6 +15,7 @@ def get_rpc_response(method, list_params=[]):
     headers = {"Content-Type": "application/json"}
     response = requests.post(url, headers=headers, json=data)
     return response.json()
+
 
 def change_log_dict(log_dict):
     dictionary = log_dict.copy()
@@ -26,14 +28,31 @@ def change_log_dict(log_dict):
     dictionary['transactionIndex'] = int(dictionary['transactionIndex'], 16)
     return AttributeDict(dictionary)
 
+
 def clean_logs(contract, myevent, log):
     log_dict = AttributeDict({'logs': log})
     eval_string = 'contract.events.{}().processReceipt({})'.format(myevent, log_dict)
     args_event = eval(eval_string)[0]
     return args_event
-    
+
+
 def get_logs(contract, myevent, hash_create, from_block, to_block, number_batches):
-     
+    """
+    Get event logs using recursion.
+
+    Args:
+        contract: web3 contract object that contains the event
+        myevent: string with event name
+        hash_create: hash of the event
+        from_block: int
+        to_block: int
+        number_batches: infura returns just 10k logs each call,
+        therefore we need to split time series into batches.
+
+    Returns:
+        List with all clean blocks.
+    """
+
     events_clean = []
     block_list = [int(from_block + i * (to_block - from_block) / number_batches) for i in range(0, number_batches)] + [
         to_block]

@@ -7,9 +7,6 @@ import numpy as np
 import json
 from tqdm import tqdm
 
-def delta_stadistic(scaled_data):
-    delta = sum([(min([1, scaled_data[i + 1] / scaled_data[i]]) - 1) ** 2 if scaled_data[i] != 0 else 0 for i in range(len(scaled_data) - 1)])
-    return delta
 
 def get_features(reserves_dict, token_address, pool_address):
     liquidity, blocks, prices, weth = [], [], [], []
@@ -69,9 +66,10 @@ def get_dict_reserves(decimal, pool_address, weth_position):
 
     token_position = 1 - WETH_position
     reserves = {}
+
     for event in events:
         reserves[event['blockNumber']] = {
-            'WETH': event['args'][f'reserve{weth_position}'] / 10 ** 18,
+            'WETH':  event['args'][f'reserve{weth_position}'] / 10 ** 18,
             'token': event['args'][f'reserve{token_position}'] / 10 ** decimal
         }
 
@@ -79,18 +77,23 @@ def get_dict_reserves(decimal, pool_address, weth_position):
 
 with open('../../data/pools_of_token.json', 'r') as f:
     pool_of_token = json.loads(f.read())
-decimals = pd.read_csv('../../data/decimals.csv', index_col="token_address")
+
+decimals       = pd.read_csv('../../data/decimals.csv', index_col="token_address")
 token_features = {}
-WETH_pools = pool_of_token[shared.WETH]
+WETH_pools     = pool_of_token[shared.WETH]
 
 for pool in tqdm(WETH_pools):
     try:
+
         WETH_position = 1 if shared.WETH == pool['token1'] else 0
-        reserves_dict = get_dict_reserves(decimals.loc[pool[f'token{1 - WETH_position}']].iloc[0], pool['address'], WETH_position)
+        reserves_dict = get_dict_reserves(decimals.loc[pool[f'token{1 - WETH_position}']].iloc[0],
+                                          pool['address'], WETH_position)
         if reserves_dict:
             features = get_features(reserves_dict, pool[f'token{1 - WETH_position}'], pool['address'])
             token_features[pool[f'token{1 - WETH_position}']] = features
+
     except Exception as err:
+        print(err)
         pass
 
 df = pd.DataFrame(token_features).transpose()

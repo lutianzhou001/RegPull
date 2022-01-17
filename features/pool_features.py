@@ -1,19 +1,28 @@
 
-def get_pool_features(syncs, position, decimal, timestamp_limit, timestamp_creation):
+def get_pool_features(syncs, position, decimal):
+    """
+        compute all features from sync events.
 
-    syncs = syncs.loc[syncs.timestamps < timestamp_limit]
-    syncs['reserve0'] = syncs['reseve0']
+    Args:
+        syncs: Dataframe with pool syncs
+        position: 1 if WETH is token1 else 0
+        decimal: token decimals
+
+    Returns:
+        pool features
+    """
+
     WETH = syncs[f'reserve{position}']/10 ** 18
     TOKEN = syncs[f'reserve{1-position}']/10 ** decimal
     PRICES = WETH/TOKEN
     LIQUIDITY = WETH * TOKEN
-    BLOCKS = syncs["block_number"]
+    BLOCKS = syncs["blockNumber"]
 
     features = {
-        'blocks': len(BLOCKS),
-        'wmatic': WETH.iloc[-1],
+        'n_syncs': len(BLOCKS),
+        'WETH': WETH.iloc[-1],
         'prices': PRICES.iloc[-1],
         'liquidity': LIQUIDITY.iloc[-1],
-        'difference_creation_sync': timestamp_creation - syncs['timestamps'].iloc[0]
     }
+
     return features

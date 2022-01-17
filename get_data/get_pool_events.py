@@ -29,12 +29,11 @@ def get_events(event_string,_hash,pool_address, pool_info, cont, len_pool_dic):
         f.close()
 
 
-list_events = ['Mint','Burn','Transfer','Sync']
+list_events = ['Mint', 'Burn', 'Transfer', 'Sync']
 
 print(f"Which event of the Uniswap pools you want to obtain from {list_events}\n")
 event_string = str(input())
 assert(event_string in list_events)
-
 
 res, web3 = connect_to_web3()
 pool_exceptions = []

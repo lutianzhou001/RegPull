@@ -18,8 +18,10 @@ def connect_to_web3():
     res = web3.isConnected()
     return res, web3
 
+
 def split_chunks(data,n_elements):
     '''
+
     splitting the calls to aggregate them properly
     Args:
         data = array containing calls
@@ -27,10 +29,11 @@ def split_chunks(data,n_elements):
     Returns:
         calls in chunks 
     '''
+
     chunks = []
     n = len(data)
     
-    if(n % n_elements!=0):
+    if n % n_elements != 0:
         n_chunks = int(n/n_elements)+1
 
     else:
@@ -43,8 +46,10 @@ def split_chunks(data,n_elements):
     chunks.append(data[(n_chunks-1)*n_elements:]) 
     return chunks
 
-def get_decimals(tokens_contracts,number_agg):
-    'Get decimals of tokens'
+
+def get_decimals_multicall(tokens_contracts,number_agg):
+    "Get decimals of tokens with multicall"
+
     json_results = []
     calls = []
     for _,contract in tokens_contracts.items():
@@ -57,6 +62,7 @@ def get_decimals(tokens_contracts,number_agg):
             json_results += multicall_aggregator(call)
 
     return json_results
+
 
 def multicall_aggregator(call):
     try:
@@ -74,41 +80,51 @@ def multicall_aggregator(call):
                 result = []
     return result
 
+
 def get_decimal_token(token_address):
+    """
+      get token decimal.
+    Args:
+        token_address: string containing token address.
+
+    Returns:
+        int corresponding to token decimals.
+    """
     try:
-        contract = web3.eth.contract(token_address,abi = shared.ABI)
+        contract = web3.eth.contract(token_address, abi=shared.ABI)
         decimals = contract.functions.decimals().call()
     except:
         decimals = None
     return decimals
+
 
 def chunks(data, SIZE=10000):
     it = iter(data)
     for i in range(0, len(data), SIZE):
         yield {k:data[k] for k in islice(it, SIZE)}
 
+
 def get_pools(dex, factory): #v2 or sushi
-    '''
+    """
     Args:
-        dex = String. Choose the DEX you want to get the pools from
-        factory = factory get_contracts of dex
+        dex : String. Choose the DEX you want to get the pools from
+        factory : factory get_contracts of dex
     Returns:
         pool dictionary with the attributes 'address','dex','token0','token1','reserves0','reserves1','creation'
-    '''
-    # _,web3 = connect_to_web3()
+    """
+
     hash_create = '0x0d3648bd0f6ba80134a33ba9275ac585d9d315f0ad8355cddefde31afa28d0e9'
     if dex == 'uniswap_v2':
         from_block = 10008355
-        #from_block = get_latest_block()-1000
         to_block = shared.BLOCKSTUDY
         number_batches = 20
-        pools = get_logs(factory,'PairCreated',hash_create,from_block,to_block,number_batches)
+        pools = get_logs(factory, 'PairCreated', hash_create, from_block, to_block, number_batches)
     
     if dex == 'sushiswap':
-        from_block = from_block = 10822038
+        from_block = 10822038
         to_block = shared.BLOCKSTUDY
         number_batches = 20
-        pools = get_logs(factory,'PairCreated',hash_create,from_block,to_block,number_batches)
+        pools = get_logs(factory, 'PairCreated', hash_create, from_block, to_block, number_batches)
 
     pool_dic = {}
     tokens = {}
@@ -144,6 +160,7 @@ def clean_transfers(transfer_list):
         }
         clean_transfer_list.append(dictionary)
     return clean_transfer_list
+
 
 def events_to_json(events):
     json_events = []

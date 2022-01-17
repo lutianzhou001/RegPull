@@ -5,7 +5,6 @@ import pandas as pd
 sys.path.append("../")
 import shared
 shared.init()
-import json
 from Utils.eth_utils import *
 from Utils.api import *
 
@@ -16,13 +15,10 @@ _,web3 = connect_to_web3()
 
 decimals_json = []
 token_contract = {}
-step = 0
 for subset_token in chunks(tokens_dic,50):
     for token in subset_token:
         token_contract[token] = web3.eth.contract(token,abi = shared.ABI)
-    decimals_json += get_decimals(token_contract,10)
-    print(step)
-    step += 1
+    decimals_json += get_decimals_multicall(token_contract,10)
     token_contract = {}
 
 token_decimals = {Web3.toChecksumAddress(element['contract_address']):element['results'][0] for element in decimals_json}

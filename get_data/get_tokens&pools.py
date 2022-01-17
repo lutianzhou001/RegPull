@@ -28,8 +28,3 @@ for pool in pool_dic.keys():
 
 with open("../data/pools_of_token.json", "w") as outfile:
     json.dump(inverted_pool_dict, outfile)
-print('Inverted Dict')
-# for token in inverted_pool_dict:
-#     with open("../data/Token_pools/" + token + ".json", "w") as outfile:
-#         json.dump(inverted_pool_dict[token], outfile)
-# print('job done')
