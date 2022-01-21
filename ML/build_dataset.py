@@ -70,7 +70,7 @@ for address, label, _type in zip(df.index.tolist(), df['label'], df['type']):
         computed_features.update(
             {'difference_token_pool': lp_transfers['block_number'].iloc[0] - transfers['block_number'].iloc[0]}
         )
-        computed_features.update(get_pool_features(syncs, WETH_position, decimal))
+        computed_features.update(get_pool_features(syncs.loc[syncs.blockNumber < eval_block], WETH_position, decimal))
 
         final_dataset.append(computed_features)
     iteration += 1
