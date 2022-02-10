@@ -8,12 +8,25 @@ shared.init()
 
 
 def get_transfer_features(transfers):
+    """
+    Computes features based on token transfers.
+
+    Parameters
+    ----------
+    transfers: Dataframe
+        Dataframe with columns: "transactionHash", "block_number", "from", "to", "value".
+
+    Returns
+    -------
+    features: Dict[str, float]
+        Dictionary that contains all computed features.
+    """
     transfers = pd.DataFrame(transfers)
     from_, to_, values = 2, 3, 4
     num_transactions_list = len(transfers)
     n_unique_addresses = len(set(transfers[from_].tolist() + transfers[to_].tolist()))
     G = nx.Graph()
-    transfers = transfers.iloc[:10000] if len(transfers) > 10000 else transfers
+    transfers = transfers.iloc[:10000]
     for From, To, Value in zip(transfers[from_], transfers[to_], transfers[values]):
        G.add_edge(From, To, weight=Value)
     try:
@@ -30,21 +43,25 @@ def get_transfer_features(transfers):
 
 
 def distribution_metric(balances, total_supply):
-    """ HHI index actual computation"""
-    g1 = sum([(value/total_supply)**2 for holder,value in balances.items() if holder not in
-              [shared.ETH_ADDRESS,shared.DEAD_ADDRESS]])
+    """ HHIndex actual computation"""
+    g1 = sum([(value/total_supply)**2 for holder,value in balances.items()
+              if holder not in [shared.ETH_ADDRESS,shared.DEAD_ADDRESS]])
     return g1
 
 
 def get_curve(transfers):
     """
+    Computes HHIndex.
 
-    Args:
-        transfers:
-
-    Returns:
-
+    Parameters
+    ----------
+    transfers: Dataframe
+        Dataframe with columns: "transactionHash", "block_number", "from", "to", "value".
+    Returns
+    -------
+    Dictionary that contains the computed HHI
     """
+
     balances = defaultdict(lambda: 0)
     from_, to_, values = 2, 3, 4
     total_supply, total_supply_ans = 0, 0

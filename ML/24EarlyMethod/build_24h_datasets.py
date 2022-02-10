@@ -21,66 +21,64 @@ for hour in range(13, 25):
     iteration = 0
     final_dataset = []
     for address, label, type_ in zip(df.index.tolist(), df['label'], df['type']):
+        features = pool_features.loc[address]
+        pool_address = features['pool_address']
+        pool_info = WETH_pool_address[pool_address]
+
+        first_block = int(features['first_sync_block'])
+        eval_block = first_block + 300 * hour
+
+        #  Open token transfers, lp transfers and syncs.
         try:
-            features = pool_features.loc[address]
-            pool_address = features['pool_address']
-            pool_info = WETH_pool_address[pool_address]
+            # Open token transfers
+            transfers = pd.read_csv(f"/media/victor/Elements/data/Token_tx/{address}.csv")
 
-            first_block = int(features['first_sync_block'])
-            eval_block = first_block + 300 * hour
+            # Open lp transfers
+            with open(f'/media/victor/Elements/data/pool_lptransfers/'
+                      f'{pool_features.loc[address]["pool_address"]}.json', 'r') as f:
+                lp_transfers = json.loads(f.read())
+                lp_transfers = pd.DataFrame([[info['transactionHash'], info['blockNumber']]
+                                             + list(info['args'].values()) + [info['type']]
+                                             for info in lp_transfers])
+            lp_transfers.columns = list(transfers.columns) + ['type']
 
-            #  Open token transfers, lp transfers and syncs.
-            try:
-                # Open token transfers
-                transfers = pd.read_csv(f"/media/victor/Elements/data/Token_tx/{address}.csv")
+            # Pool features
+            with open(f'/media/victor/Elements/data/pool_sync_events/{pool_address}.json', 'r') as f:
+                syncs = json.loads(f.read())  # Open sync events
+            syncs = pd.DataFrame([[info['blockNumber']] + list(info['args'].values()) for info in syncs])
+            syncs.columns = ['blockNumber', 'reserve0', 'reserve1']
 
-                # Open lp transfers
-                with open(f'/media/victor/Elements/data/pool_lptransfers/'
-                          f'{pool_features.loc[address]["pool_address"]}.json', 'r') as f:
-                    lp_transfers = json.loads(f.read())
-                    lp_transfers = pd.DataFrame([[info['transactionHash'], info['blockNumber']]
-                                                 + list(info['args'].values()) + [info['type']]
-                                                 for info in lp_transfers])
-                lp_transfers.columns = list(transfers.columns) + ['type']
+        except Exception as err:
+            print(err)
+            continue
 
-                # Pool features
-                with open(f'/media/victor/Elements/data/pool_sync_events/{pool_address}.json', 'r') as f:
-                    syncs = json.loads(f.read())  # Open sync events
-                syncs = pd.DataFrame([[info['blockNumber']] + list(info['args'].values()) for info in syncs])
-                syncs.columns = ['blockNumber', 'reserve0', 'reserve1']
+        WETH_position = 1 if shared.WETH == pool_info['token1'] else 0
+        decimal = decimals.loc[address].iloc[0]
 
-            except Exception as err:
-                print(err)
-                continue
+        computed_features = {}
 
-            WETH_position = 1 if shared.WETH == pool_info['token1'] else 0
-            decimal = decimals.loc[address].iloc[0]
+        # Transfer Features
+        computed_features.update({'token_address': address, 'eval_block': eval_block})
+        computed_features.update(get_transfer_features(transfers.loc[transfers.block_number < eval_block].values))
+        computed_features.update(get_curve(transfers.loc[transfers.block_number < eval_block].values))
 
-            computed_features = {}
+        # Lp Transfer Features
+        computed_features.update({'liq_curve': get_curve(
+            lp_transfers.loc[lp_transfers.block_number < eval_block].values)['tx_curve']})
 
-            # Transfer Features
-            computed_features.update({'token_address': address, 'eval_block': eval_block})
-            computed_features.update(get_transfer_features(transfers.loc[transfers.block_number < eval_block].values))
-            computed_features.update(get_curve(transfers.loc[transfers.block_number < eval_block].values))
+        transfer_types = lp_transfers.loc[lp_transfers.block_number < eval_block]['type'].value_counts()
+        computed_features.update({'Mint': 0, 'Burn': 0, 'Transfer': 0})
+        for _type_ in transfer_types.index:
+            computed_features[_type_] = transfer_types[_type_]
+        computed_features.update({'difference_token_pool': + lp_transfers['block_number'].iloc[0]
+                                                           - transfers['block_number'].iloc[0]})
 
-            # Lp Transfer Features
-            computed_features.update({'liq_curve': get_curve(
-                lp_transfers.loc[lp_transfers.block_number < eval_block].values)['tx_curve']})
+        #  Sync Features
+        computed_features.update(get_pool_features(syncs[syncs.blockNumber < eval_block], WETH_position, decimal))
 
-            transfer_types = lp_transfers.loc[lp_transfers.block_number < eval_block]['type'].value_counts()
-            computed_features.update({'Mint': 0, 'Burn': 0, 'Transfer': 0})
-            for _type_ in transfer_types.index:
-                computed_features[_type_] = transfer_types[_type_]
-            computed_features.update({'difference_token_pool': + lp_transfers['block_number'].iloc[0]
-                                                               - transfers['block_number'].iloc[0]})
+        final_dataset.append(computed_features)
 
-            #  Sync Features
-            computed_features.update(get_pool_features(syncs[syncs.blockNumber < eval_block], WETH_position, decimal))
+        iteration += 1
+        print(hour, iteration, len(df.index.tolist()))
 
-            final_dataset.append(computed_features)
-
-            iteration += 1
-            print(hour, iteration, len(df.index.tolist()))
-        except:
-            pass
     pd.DataFrame(final_dataset).to_csv(f"CSVS_/X_{hour}h.csv", index=False)

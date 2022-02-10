@@ -1,7 +1,6 @@
 from web3 import Web3, HTTPProvider
 import shared
 shared.init()
-from shared import web3, multicall
 from Utils.api import get_logs
 from itertools import islice
 
@@ -9,26 +8,37 @@ from itertools import islice
 def connect_to_web3():
     """
     Connect to Web3 server.
-    Args:
-    Returns:
-      res: Boolean indicating that connection was succeed or not.
-      web3: Web3 Object
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    res: bool
+        True if connection was succeeded, otherwise False
+    web3: Web3 Object
     """
     web3 = Web3(HTTPProvider('https://mainnet.infura.io/v3/d6243bb783b44485ad6636b6c3411377'))
     res = web3.isConnected()
     return res, web3
 
 
-def split_chunks(data,n_elements):
-    '''
+def split_chunks(data, n_elements):
+    """
+    Splitting the calls to aggregate them properly.
 
-    splitting the calls to aggregate them properly
-    Args:
-        data = array containing calls
-        n_elements = Int. Calls we want to aggregate
-    Returns:
-        calls in chunks 
-    '''
+    Parameters
+    ----------
+    data: np.array
+        Containing calls
+    n_elements: int
+        Calls we want to aggregate
+
+    Returns
+    -------
+    chunks: list
+        Calls in chunks
+    """
 
     chunks = []
     n = len(data)
@@ -47,57 +57,6 @@ def split_chunks(data,n_elements):
     return chunks
 
 
-def get_decimals_multicall(tokens_contracts,number_agg):
-    "Get decimals of tokens with multicall"
-
-    json_results = []
-    calls = []
-    for _,contract in tokens_contracts.items():
-            calls.append(contract.functions.decimals())
-    calls_splited = split_chunks(calls,int(len(calls)/number_agg))
-    for call in calls_splited:
-        try:
-            json_results += multicall.aggregate(call,shared.BLOCKSTUDY).json['results']
-        except:         
-            json_results += multicall_aggregator(call)
-
-    return json_results
-
-
-def multicall_aggregator(call):
-    try:
-        result = multicall.aggregate(call,shared.BLOCKSTUDY).json['results']
-    except:
-        if len(call) > 1:
-            split_call = split_chunks(call,int(len(call)/2))
-            result1 = multicall_aggregator(split_call[0])
-            result2 = multicall_aggregator(split_call[1])
-            result = result1+result2
-        else:
-            try:
-                result = multicall.aggregate(call,shared.BLOCKSTUDY).json['results']
-            except:
-                result = []
-    return result
-
-
-def get_decimal_token(token_address):
-    """
-      get token decimal.
-    Args:
-        token_address: string containing token address.
-
-    Returns:
-        int corresponding to token decimals.
-    """
-    try:
-        contract = web3.eth.contract(token_address, abi=shared.ABI)
-        decimals = contract.functions.decimals().call()
-    except:
-        decimals = None
-    return decimals
-
-
 def chunks(data, SIZE=10000):
     it = iter(data)
     for i in range(0, len(data), SIZE):
@@ -106,10 +65,16 @@ def chunks(data, SIZE=10000):
 
 def get_pools(dex, factory): #v2 or sushi
     """
-    Args:
-        dex : String. Choose the DEX you want to get the pools from
-        factory : factory get_contracts of dex
-    Returns:
+    Parameters
+    ----------
+    dex : str
+        Choose the DEX you want to get the pools from
+    factory : web3.eth.contract
+        factory get_contracts of dex
+
+    Returns
+    -------
+    pool_dic: Dict[str, float]
         pool dictionary with the attributes 'address','dex','token0','token1','reserves0','reserves1','creation'
     """
 
@@ -142,24 +107,7 @@ def get_pools(dex, factory): #v2 or sushi
                                         'reserves1':None,
                                         'creation':pool.blockNumber}})   
 
-    return pool_dic,tokens
-
-
-def clean_transfers(transfer_list):
-    clean_transfer_list = []
-    for transfer in transfer_list:
-        dictionary  = {
-            'from': transfer.args._from,
-            'to'  : transfer.args._to,
-            'value': transfer.args._value,
-            'logIndex': transfer.logIndex,
-            'transactionIndex': transfer.transactionIndex,
-            'transactionHash': transfer.transactionHash,
-            'blockHash':transfer.blockHash,
-            'blockNumber': transfer.blockNumber
-        }
-        clean_transfer_list.append(dictionary)
-    return clean_transfer_list
+    return pool_dic, tokens
 
 
 def events_to_json(events):

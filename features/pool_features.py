@@ -1,15 +1,20 @@
 
 def get_pool_features(syncs, position, decimal):
     """
-        compute all features from sync events.
+    Compute all features from sync events.
 
-    Args:
-        syncs: Dataframe with pool syncs
-        position: 1 if WETH is token1 else 0
-        decimal: token decimals
+    Parameters
+    ----------
+    syncs: Dataframe
+        with pool syncs
+    position: int
+        1 if WETH is token1 else 0
+    decimal: float
+        token decimals
 
-    Returns:
-        pool features
+    Returns
+    -------
+        tx_creation hash if success, "Not found" otherwise.
     """
 
     WETH = syncs[f'reserve{position}']/10 ** 18

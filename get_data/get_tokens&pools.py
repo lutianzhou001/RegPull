@@ -1,30 +1,45 @@
-import sys
 import pandas as pd
-sys.path.append("../")
-import shared
-shared.init()
-from Utils.eth_utils import *
 import json
 
-_,web3 = connect_to_web3()
+import shared
+from Utils.eth_utils import get_pools
+shared.init()
 
-factory = web3.eth.contract(shared.UNISWAP_FACTORY, abi=shared.ABI_FACTORY)
-pool_dic, tokens = get_pools('uniswap_v2', factory)
-    
-pd.DataFrame(tokens.keys(), columns=["token_address"]).to_csv("../data/tokens.csv", index=False)
 
-inverted_pool_dict = dict()
-print('Pools downloaded')
+def get_token_and_pools(out_path, dex='uniswap_v2'):
+    """
+    Get tokens and pools from sushiswap or uniswap_v2.
 
-for pool in pool_dic.keys():
-    try:
-        inverted_pool_dict[pool_dic[pool]['token0']].append(pool_dic[pool])
-    except:
-        inverted_pool_dict[pool_dic[pool]['token0']] = [pool_dic[pool]]
-    try:
-        inverted_pool_dict[pool_dic[pool]['token1']].append(pool_dic[pool])
-    except:
-        inverted_pool_dict[pool_dic[pool]['token1']] = [pool_dic[pool]]
+    Parameters
+    ----------
+    out_path : str
+        Path to output directory.
+    dex : str
+        sushiswap or uniswap_v2 are currently allowed.
+    """
 
-with open("../data/pools_of_token.json", "w") as outfile:
-    json.dump(inverted_pool_dict, outfile)
+    factory = shared.web3.eth.contract(shared.UNISWAP_FACTORY, abi=shared.ABI_FACTORY)
+    pool_dic, tokens = get_pools(dex, factory)
+    pd.DataFrame(tokens.keys(), columns=["token_address"]).to_csv(f"{out_path}/tokens.csv", index=False)
+
+    with open(f"{out_path}/pool_dict.json", "w") as outfile:
+        json.dump(pool_dic, outfile)
+
+    inverted_pool_dict = dict()
+    for pool in pool_dic.keys():
+        try:
+            inverted_pool_dict[pool_dic[pool]['token0']].append(pool_dic[pool])
+        except:
+            inverted_pool_dict[pool_dic[pool]['token0']] = [pool_dic[pool]]
+        try:
+            inverted_pool_dict[pool_dic[pool]['token1']].append(pool_dic[pool])
+        except:
+            inverted_pool_dict[pool_dic[pool]['token1']] = [pool_dic[pool]]
+
+    with open(f"{out_path}/pools_of_token.json", "w") as outfile:
+        json.dump(inverted_pool_dict, outfile)
+
+    print('Tokens and Pools downloaded!')
+
+
+# get_token_and_pools("../data", dex='uniswap_v2')

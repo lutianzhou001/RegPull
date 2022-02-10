@@ -1,5 +1,4 @@
 import requests
-import json
 from web3.datastructures import AttributeDict
 from hexbytes import HexBytes
 import sys
@@ -9,6 +8,28 @@ shared.init()
 
 
 def get_rpc_response(method, list_params=[]):
+    """
+    Parameters
+    ----------
+    method: str
+        Indicates node method.
+    list_params: List[Dict[str, Any]]
+        List of request parameters.
+
+    Returns
+    -------
+    args_event: AttributeDict
+        Change number basis.
+
+    Example
+    -------
+        If we want token transfers of 0xa150Db9b1Fa65b44799d4dD949D922c0a33Ee606
+        between blocks [11000000, 11025824] then:
+        method: 'eth_getLogs'
+        list_params: [[{'address': '0xa150Db9b1Fa65b44799d4dD949D922c0a33Ee606',
+                    'fromBlock': '0xa7d8c0', 'toBlock': '0xa83da0',
+                    'topics': ['0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef']}]]
+    """
     url = shared.INFURA_URL
     list_params = list_params or []
     data = [{"jsonrpc": "2.0", "method": method, "params": params, "id": 1} for params in list_params]
@@ -18,6 +39,17 @@ def get_rpc_response(method, list_params=[]):
 
 
 def change_log_dict(log_dict):
+    """
+    Parameters
+    ----------
+    log_dict: AttributeDict
+        Decoded logs.
+
+    Returns
+    -------
+    args_event: AttributeDict
+        Change number basis.
+    """
     dictionary = log_dict.copy()
     dictionary['blockHash'] = HexBytes(dictionary['blockHash'])
     dictionary['blockNumber'] = int(dictionary['blockNumber'], 16)
@@ -30,6 +62,21 @@ def change_log_dict(log_dict):
 
 
 def clean_logs(contract, myevent, log):
+    """
+    Parameters
+    ----------
+    contract: web3.eth.contract
+        Contract that contains the event.
+    myevent: str
+        string with event name.
+    log: List[AttributeDict]
+        List containing raw node response.
+
+    Returns
+    -------
+    args_event: AttributeDict
+        Decoded logs.
+    """
     log_dict = AttributeDict({'logs': log})
     eval_string = 'contract.events.{}().processReceipt({})'.format(myevent, log_dict)
     args_event = eval(eval_string)[0]
@@ -40,17 +87,25 @@ def get_logs(contract, myevent, hash_create, from_block, to_block, number_batche
     """
     Get event logs using recursion.
 
-    Args:
-        contract: web3 contract object that contains the event
-        myevent: string with event name
-        hash_create: hash of the event
-        from_block: int
-        to_block: int
-        number_batches: infura returns just 10k logs each call,
-        therefore we need to split time series into batches.
+    Parameters
+    ----------
+    contract: web3.eth.contract
+        Contract that contains the event.
+    myevent: str
+        string with event name.
+    hash_create: str
+        hash of the event.
+    from_block: int
+        Starting block.
+    to_block: int
+        Ending block.
+    number_batches: int
+        infura returns just 10k logs each call, therefore we need to split time series into batches.
 
-    Returns:
-        List with all clean blocks.
+    Returns
+    -------
+    events_clean: list
+        List with all clean logs.
     """
 
     events_clean = []

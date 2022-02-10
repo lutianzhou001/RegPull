@@ -1,27 +1,23 @@
-import sys
-
-import pandas as pd
-
-sys.path.append("../")
 import shared
 shared.init()
-from Utils.eth_utils import *
-from Utils.api import *
 
-tokens = pd.read_csv("../data/tokens.csv")
-tokens_dic = dict.fromkeys(tokens["token_address"], 0)
 
-_,web3 = connect_to_web3()
+def get_decimal_token(token_address):
+    """
+    Gets token decimal given a token address.
 
-decimals_json = []
-token_contract = {}
-for subset_token in chunks(tokens_dic,50):
-    for token in subset_token:
-        token_contract[token] = web3.eth.contract(token,abi = shared.ABI)
-    decimals_json += get_decimals_multicall(token_contract,10)
-    token_contract = {}
+    Parameters
+    ----------
+    token_address: str
+        String containing token address.
 
-token_decimals = {Web3.toChecksumAddress(element['contract_address']):element['results'][0] for element in decimals_json}
+    Returns
+    -------
+    decimal: int
+        Int corresponding to token decimal.
+    """
 
-pd.DataFrame({'token_address': token_decimals.keys(), 'decimal': token_decimals.values()}).to_csv(
-    "../data/decimals.csv", index=False)
+    contract = shared.web3.eth.contract(token_address, abi=shared.ABI)
+    decimals = contract.functions.decimals().call()
+
+    return decimals

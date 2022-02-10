@@ -1,9 +1,6 @@
 import configparser
 import subprocess
-import pandas as pd
 from web3 import Web3
-from web3_multicall import Multicall
-import json
 
 def init():
 
@@ -62,7 +59,6 @@ def init():
     UNISWAP_FACTORY    = config.get("FACTORIES", "UNISWAP_FACTORY")
 
     #Get log hashes
-
     TRANSACTION        = config.get("LOG_HASHES","TRANSACTION")
 
     EXCHANGES          = {
@@ -78,7 +74,6 @@ def init():
     ABI_POOL           = open(ROOT_FOLDER + "/ABIs/abi_pool.txt").read()
     # Define global objects
     BLOCKSTUDY        =  13152303
-    # POOLS = pd.read_csv(ROOT_FOLDER + "/Analysis/pools.csv")
 
     web3 = Web3(Web3.HTTPProvider(INFURA_URL))
-    multicall =  Multicall(web3.eth)
+    # multicall =  Multicall(web3.eth)
