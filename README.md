@@ -6,8 +6,8 @@
 
 ### Introduction
 
-In this repository we will find the necessary tools to replicate the work made in "url_here". This repository, allows to download all the necessary data of UniswapV2 pools in the Ethereum blockchain. That is, all the PairPools, with their liquidity, prices and Add/remove events, all the source codes of the tokens,...
-Moreover, in the folder ML we will find the tools to predict with high accurracy and sensibility if a token will eventually become a scam or not.
+In this repository we will find the necessary tools to replicate the work made in "https://arxiv.org/abs/2201.07220". This repository, allows to download all the necessary data of UniswapV2 pools in the Ethereum blockchain. That is, all the PairPools, with their liquidity, prices and Add/remove events, all the source codes of the tokens,...
+Moreover, in the folder ML we will find the tools to predict with high accurracy and sensibility if a token will eventually become a scam/rug or not.
 
 ### Abstract
 
