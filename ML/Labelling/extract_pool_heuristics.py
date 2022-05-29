@@ -57,45 +57,53 @@ def get_features(reserves_dict, token_address, pool_address):
 
 
 def get_dict_reserves(decimal, pool_address, weth_position):
-    with open(f'/media/victor/Elements/data/pool_sync_events/{pool_address}.json') as f:
-        events = json.loads(f.read())
-    f.close()
+    try:
+        # print('/Users/vincent.lu/PycharmProjects/RugPullDetection/data/pool_sync_events/' + pool_address +'.json')
+        with open('/Users/vincent.lu/PycharmProjects/RugPullDetection/data/pool_sync_events/' + pool_address +'.json') as f:
+            events = json.loads(f.read())
+        f.close()
+    except Exception as err:
+        print({err})
 
     if len(events) < 5:
         return False
 
-    token_position = 1 - WETH_position
+    token_position = 1 - weth_position
     reserves = {}
 
     for event in events:
+        print(event)
+        WETH_AMOUNT = event['args'][f'reserve{weth_position}'] / (10 ** 18)
+        TOKEN_AMOUNT = event['args'][f'reserve{token_position}'] / (10 ** int(decimal))
+        print(TOKEN_AMOUNT)
         reserves[event['blockNumber']] = {
-            'WETH':  event['args'][f'reserve{weth_position}'] / 10 ** 18,
-            'token': event['args'][f'reserve{token_position}'] / 10 ** decimal
+            'WETH':  WETH_AMOUNT,
+            'token': TOKEN_AMOUNT,
         }
-
+        print(reserves[event['blockNumber']])
     return reserves
 
-with open('../../data/pools_of_token.json', 'r') as f:
-    pool_of_token = json.loads(f.read())
-
-decimals       = pd.read_csv('../../data/decimals.csv', index_col="token_address")
-token_features = {}
-WETH_pools     = pool_of_token[shared.WETH]
-
-for pool in tqdm(WETH_pools):
-    try:
-
-        WETH_position = 1 if shared.WETH == pool['token1'] else 0
-        reserves_dict = get_dict_reserves(decimals.loc[pool[f'token{1 - WETH_position}']].iloc[0],
-                                          pool['address'], WETH_position)
-        if reserves_dict:
-            features = get_features(reserves_dict, pool[f'token{1 - WETH_position}'], pool['address'])
-            token_features[pool[f'token{1 - WETH_position}']] = features
-
-    except Exception as err:
-        print(err)
-        pass
-
-df = pd.DataFrame(token_features).transpose()
-df.to_csv("../../data/pool_heuristics.csv", index=False)
+# with open('../../data/pools_of_token.json', 'r') as f:
+#     pool_of_token = json.loads(f.read())
+#
+# decimals       = pd.read_csv('../../data/decimals.csv', index_col="token_address")
+# token_features = {}
+# WETH_pools     = pool_of_token[shared.WETH]
+#
+# for pool in tqdm(WETH_pools):
+#     try:
+#
+#         WETH_position = 1 if shared.WETH == pool['token1'] else 0
+#         reserves_dict = get_dict_reserves(decimals.loc[pool[f'token{1 - WETH_position}']].iloc[0],
+#                                           pool['address'], WETH_position)
+#         if reserves_dict:
+#             features = get_features(reserves_dict, pool[f'token{1 - WETH_position}'], pool['address'])
+#             token_features[pool[f'token{1 - WETH_position}']] = features
+#
+#     except Exception as err:
+#         print(err)
+#         pass
+#
+# df = pd.DataFrame(token_features).transpose()
+# df.to_csv("../../data/pool_heuristics.csv", index=False)
 

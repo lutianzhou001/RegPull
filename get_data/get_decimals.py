@@ -18,6 +18,10 @@ def get_decimal_token(token_address):
     """
 
     contract = shared.web3.eth.contract(token_address, abi=shared.ABI)
-    decimals = contract.functions.decimals().call()
+    try:
+        decimals = contract.functions.decimals().call()
+    except:
+        decimals = 'ERR'
+    print("Successfully get Decimal of token: ", decimals)
 
     return decimals

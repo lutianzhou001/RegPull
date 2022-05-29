@@ -31,7 +31,7 @@ for hour in range(13, 25):
         #  Open token transfers, lp transfers and syncs.
         try:
             # Open token transfers
-            transfers = pd.read_csv(f"/media/victor/Elements/data/Token_tx/{address}.csv")
+            transfers = pd.read_csv('../data/Token_tx/' + address + '.csv')
 
             # Open lp transfers
             with open(f'/media/victor/Elements/data/pool_lptransfers/'

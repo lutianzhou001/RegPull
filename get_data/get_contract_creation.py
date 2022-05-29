@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 
 
-def _obtain_tx_creation(token_address):
+def obtain_tx_creation(token_address):
     """
     Gets token tx creation hash via web scrapping.
 

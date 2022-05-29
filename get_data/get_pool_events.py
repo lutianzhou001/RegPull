@@ -34,6 +34,6 @@ def get_pool_events(event_name, hashed_event, pool_address, out_path, start_bloc
         return
 
     json_events = events_to_json(events)
-    with open(f'{out_path}/{pool_address}.json', 'w+') as f:
+    with open(f'{out_path}/pool_sync_events/{pool_address}.json', 'w+') as f:
         json.dump(json_events, f)
     f.close()

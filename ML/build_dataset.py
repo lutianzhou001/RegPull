@@ -31,7 +31,7 @@ for address, label, _type in zip(df.index.tolist(), df['label'], df['type']):
         eval_blocks = sorted(choice(list_of_blocks, 5)) if label == 1 else sorted(choice(list_of_blocks, 1))
 
         try:
-            transfers = pd.read_csv(f"/media/victor/Elements/data/Token_tx/{address}.csv")
+            transfers = pd.read_csv('../data/Token_tx/' + address + '.csv')
             with open(f'/media/victor/Elements/data/pool_lptransfers/{pool_features.loc[address]["pool_address"]}.json',
                       'r') as f:
                 lp_transfers = json.loads(f.read())
@@ -40,7 +40,7 @@ for address, label, _type in zip(df.index.tolist(), df['label'], df['type']):
 
             lp_transfers.columns = list(transfers.columns) + ['type']
             # Pool features
-            with open(f'/media/victor/Elements/data/pool_sync_events/{pool_address}.json', 'r') as f:
+            with open('../data/pool_sync_events/' + pool_address + '.json', 'r') as f:
                 syncs = json.loads(f.read())
             syncs = pd.DataFrame([[info['blockNumber']] + list(info['args'].values()) for info in syncs])
             syncs.columns = ['blockNumber', 'reserve0', 'reserve1']
