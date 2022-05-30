@@ -38,14 +38,14 @@ if __name__ == '__main__':
     # Step3: get transfers
     with open('./data/tokens.csv', 'r') as tokens_file:
         reader = csv.DictReader(tokens_file)
-        for token in reader:
+        for token in tqdm(reader):
             token["decimal"] = get_decimal_token(token['token_address'])
             with open(decimals, "a") as decimals_file:
                 writer = csv.writer(decimals_file)
                 writer.writerow([token['token_address'], token['decimal']])
-            create_tx = obtain_tx_creation(token['token_address'])
-            receipt = get_rpc_response("eth_getTransactionReceipt",[[create_tx]])
-            get_transfers(token['token_address'], './data/transfers',int(receipt[0]['result']['blockNumber'],16),14860000, token['decimal'])
+    #        create_tx = obtain_tx_creation(token['token_address'])
+    #        receipt = get_rpc_response("eth_getTransactionReceipt",[[create_tx]])
+    #        get_transfers(token['token_address'], './data/transfers',int(receipt[0]['result']['blockNumber'],16),14860000, token['decimal'])
 
     # # Step4: extract pool heuristics
     with open('./data/pools_of_token.json', 'r') as f:
