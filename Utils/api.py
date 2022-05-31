@@ -34,7 +34,6 @@ def get_rpc_response(method, list_params=[]):
     list_params = list_params or []
     data = [{"jsonrpc": "2.0", "method": method, "params": params, "id": 1} for params in list_params]
     headers = {"Content-Type": "application/json"}
-    print(data)
     response = requests.post(url, headers=headers, json=data)
     return response.json()
 
@@ -119,7 +118,6 @@ def get_logs(contract, myevent, hash_create, from_block, to_block, number_batche
                      "toBlock": hex(block_list[i]),
                      "topics": [hash_create]}] for i in range(1, number_batches + 1)]
 
-    print("starting fetching logs")
     logs = get_rpc_response("eth_getLogs", list_params)
     for j, log in enumerate(logs):
         if list(log.keys())[-1] == "result":
